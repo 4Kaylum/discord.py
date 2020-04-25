@@ -199,7 +199,7 @@ class Role(Hashable):
         http = self._state.http
 
         change_range = range(min(self.position, position), max(self.position, position) + 1)
-        roles = [r.id for r in self.guild.roles[1:] if r.position in change_range and r.id != self.id]
+        roles = [r.id for r in (await self.guild.fetch_roles())[1:] if r.position in change_range and r.id != self.id]
 
         if self.position > position:
             roles.insert(0, self.id)

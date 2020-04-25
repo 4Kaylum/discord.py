@@ -198,13 +198,10 @@ class Role(Hashable):
 
         http = self._state.http
 
-        change_range = range(min(self.position, position), max(self.position, position) + 1)
+        change_range = range(1, max(self.position, position) + 1)
         roles = [r.id for r in self.guild.roles[1:] if r.position in change_range and r.id != self.id]
 
-        if self.position > position:
-            roles.insert(0, self.id)
-        else:
-            roles.append(self.id)
+        roles.insert(position, self.id)
 
         payload = [{"id": z[0], "position": z[1]} for z in zip(roles, change_range)]
         await http.move_role_position(self.guild.id, payload, reason=reason)

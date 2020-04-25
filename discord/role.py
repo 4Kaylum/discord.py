@@ -208,11 +208,51 @@ class Role(Hashable):
         http = self._state.http
 
         change_range = range(1, max(self.position, position) + 1)
-        roles = [r.id for r in self.guild.roles[1:] if r.position in change_range and r.id != self.id]
+        roles = [r for r in self.guild.roles[1:] if r.position in change_range and r.id != self.id]
 
         roles.insert(position - 1, self.id)
 
         payload = [{"id": z[0], "position": z[1]} for z in zip(roles, change_range)]
+        await http.move_role_position(self.guild.id, payload, reason=reason)
+
+    async def _move_below(self, below, reason):
+        """|coro|
+
+        Moves the current role beneath the given role, cascading down and fixing the order of all lower roles
+        """
+
+        if below.is_default():
+            raise InvalidArgument("Cannot move default role")
+
+        if below == self:
+            return  # Save discord the extra request.
+
+        http = self._state.http
+
+        # Get the cached roles
+        cached_role_ids = [r.id for r in self.guild.roles]
+
+        # Fetch the roles from the API, ordered by the order of the cache
+        all_guild_roles = sorted(await self.guild.fetch_roles(), key=lambda r: cached_role_ids.index(r.id))
+
+        # Get the order of the roles we want to append
+        roles = []
+        encounters = 0
+        for r in all_guild_roles[1:]:
+            if r.id == self.id:
+                encounters += 1
+                continue
+            if r.id == below.id:
+                encounters += 1
+                roles.append(self)
+                roles.append(r)
+            else:
+                roles.append(r)
+            if encounters == 2:
+                break
+
+        # payload = [{"id": z[0].id, "position": z[1]} for z in zip(roles, change_range)]
+        payload = [{"id": z.id, "position": index} for index, z in enumerate(roles, start=1)]
         await http.move_role_position(self.guild.id, payload, reason=reason)
 
     async def edit(self, *, reason=None, **fields):
@@ -253,6 +293,10 @@ class Role(Hashable):
             An invalid position was given or the default
             role was asked to be moved.
         """
+
+        below = fields.get('position_below')
+        if below is not None:
+            await self._move_below(below, reason=reason)
 
         position = fields.get('position')
         if position is not None:

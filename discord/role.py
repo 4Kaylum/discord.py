@@ -208,7 +208,7 @@ class Role(Hashable):
             roles.append(self)
 
         if len(roles) != len(change_range):
-            raise Exception([(i, i.position for i in roles)])
+            raise Exception([(i, i.position) for i in roles])
 
         payload = [{"id": z[0].id, "position": z[1]} for z in zip(roles, change_range)]
         await http.move_role_position(self.guild.id, payload, reason=reason)

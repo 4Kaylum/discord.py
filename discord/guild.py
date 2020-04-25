@@ -1531,7 +1531,9 @@ class Guild(Hashable):
             All roles in the guild.
         """
         data = await self._state.http.get_roles(self.id)
-        return [Role(guild=self, state=self._state, data=d) for d in data]
+        roles = [Role(guild=self, state=self._state, data=d) for d in data]
+        self._roles = {i.id: i for i in roles}
+        return roles
 
     async def create_role(self, *, reason=None, **fields):
         """|coro|

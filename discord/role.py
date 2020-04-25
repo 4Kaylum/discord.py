@@ -201,6 +201,8 @@ class Role(Hashable):
         change_range = range(min(self.position, position), max(self.position, position) + 1)
         guild_roles = sorted(self.guild.roles[1:], key=lambda r: r.position)
         roles = [r.id for r in guild_roles if r.position in change_range and r.id != self.id]
+        if len(change_range) >= len(roles):
+            raise Exception(f"Invalid position for role position change ({self.id}) - {roles} selected")
 
         if self.position > position:
             roles.insert(0, self.id)
@@ -253,6 +255,8 @@ class Role(Hashable):
         if position is not None:
             await self._move(position, reason=reason)
             self.position = position
+            if len(fields) == 1:
+                return
 
         try:
             colour = fields['colour']

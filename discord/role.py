@@ -252,6 +252,8 @@ class Role(Hashable):
         if position is not None:
             await self._move(position, reason=reason)
             self.position = position
+            if len(fields) == 1:
+                return
 
         try:
             colour = fields['colour']

@@ -214,7 +214,6 @@ class Role(Hashable):
             if index >= end_stop:
                 break
 
-        raise Exception(payload)
         await http.move_role_position(self.guild.id, payload, reason=reason)
 
     async def edit(self, *, reason=None, **fields):

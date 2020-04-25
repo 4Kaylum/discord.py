@@ -187,18 +187,19 @@ class Role(Hashable):
         return [member for member in all_members if member._roles.has(role_id)]
 
     async def _move(self, goal_position, reason):
-        if position <= 0:
+        if goal_position <= 0:
             raise InvalidArgument("Cannot move role to position 0 or below")
 
         if self.is_default():
             raise InvalidArgument("Cannot move default role")
 
-        if self.position == position:
+        if self.position == goal_position:
             return  # Save discord the extra request.
 
         http = self._state.http
 
         guild_roles = sorted((await self.guild.fetch_roles())[1:], key=lambda r: r.position)
+        end_stop = max(self.position, goal_position) + 1
 
         payload = []
         index = 1
@@ -206,11 +207,12 @@ class Role(Hashable):
             if index == goal_position:
                 payload.append({"id": self.id, "position": index})
                 index += 1
-                break
             if role.id == self.id:
                 continue
             payload.append({"id": role.id, "position": index})
             index += 1
+            if index == end_stop:
+                break
 
         raise Exception(payload)
         await http.move_role_position(self.guild.id, payload, reason=reason)

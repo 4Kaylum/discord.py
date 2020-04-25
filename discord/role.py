@@ -186,7 +186,7 @@ class Role(Hashable):
         role_id = self.id
         return [member for member in all_members if member._roles.has(role_id)]
 
-    async def _move(self, position, reason):
+    async def _move(self, goal_position, reason):
         if position <= 0:
             raise InvalidArgument("Cannot move role to position 0 or below")
 
@@ -198,19 +198,21 @@ class Role(Hashable):
 
         http = self._state.http
 
-        change_range = range(min(self.position, position), max(self.position, position) + 1)
         guild_roles = sorted((await self.guild.fetch_roles())[1:], key=lambda r: r.position)
-        roles = [r for r in guild_roles if r.position in change_range and r.id != self.id]
 
-        if self.position > position:
-            roles.insert(0, self)
-        else:
-            roles.append(self)
+        payload = []
+        index = 1
+        for role in guild_roles:
+            if index == goal_position:
+                payload.append({"id": self.id, "position": index})
+                index += 1
+                break
+            if role.id == self.id:
+                continue
+            payload.append({"id": role.id, "position": index})
+            index += 1
 
-        if len(roles) != len(change_range):
-            raise Exception([(i, i.position) for i in roles])
-
-        payload = [{"id": z[0].id, "position": z[1]} for z in zip(roles, change_range)]
+        raise Exception(payload)
         await http.move_role_position(self.guild.id, payload, reason=reason)
 
     async def edit(self, *, reason=None, **fields):

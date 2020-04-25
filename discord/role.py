@@ -211,7 +211,7 @@ class Role(Hashable):
                 continue
             payload.append({"id": role.id, "position": index})
             index += 1
-            if index == end_stop:
+            if index >= end_stop:
                 break
 
         raise Exception(payload)

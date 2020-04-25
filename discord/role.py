@@ -200,7 +200,7 @@ class Role(Hashable):
 
         change_range = range(min(self.position, position), max(self.position, position) + 1)
         guild_roles = sorted(self.guild.roles[1:], key=lambda r: r.position)
-        roles = [r.id for r in guild_roles if r.position in change_range and r.id != self.id]
+        roles = [(r.id, r.position) for r in guild_roles if r.position in change_range and r.id != self.id]
         if len(change_range) >= len(roles):
             raise Exception(f"Invalid position for role position change ({self.id}) - {roles} selected")
 
@@ -209,7 +209,7 @@ class Role(Hashable):
         else:
             roles.append(self.id)
 
-        payload = [{"id": z[0], "position": z[1]} for z in zip(roles, change_range)]
+        payload = [{"id": z[0][0], "position": z[1]} for z in zip(roles, change_range)]
         await http.move_role_position(self.guild.id, payload, reason=reason)
 
     async def edit(self, *, reason=None, **fields):

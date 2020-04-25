@@ -1600,7 +1600,8 @@ class Guild(Hashable):
 
         data = await self._state.http.create_role(self.id, reason=reason, **fields)
         # role = Role(guild=self, data=data, state=self._state)
-        # self._roles = {i.id: i for i in await self.fetch_roles()}
+        guild_roles = sorted(await self.fetch_roles(), key=lambda r: r.position)
+        self._roles = {i.id: i for i in guild_roles}
         return self.get_role(int(data['id']))  # TODO cache this without fetching from the API
 
     async def kick(self, user, *, reason=None):

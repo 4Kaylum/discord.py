@@ -1532,7 +1532,7 @@ class Guild(Hashable):
         """
 
         data = await self._state.http.get_roles(self.id)
-        roles = [Role(guild=self, state=self._state, data=d) for d in data]
+        roles = sorted([Role(guild=self, state=self._state, data=d) for d in data], key=lambda r: r.position)
         self._roles = {i.id: i for i in roles}
         return roles
 
@@ -1600,7 +1600,7 @@ class Guild(Hashable):
 
         data = await self._state.http.create_role(self.id, reason=reason, **fields)
         # role = Role(guild=self, data=data, state=self._state)
-        guild_roles = sorted(await self.fetch_roles(), key=lambda r: r.position)
+        guild_roles = await self.fetch_roles()
         self._roles = {i.id: i for i in guild_roles}
         return self.get_role(int(data['id']))  # TODO cache this without fetching from the API
 

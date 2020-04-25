@@ -199,7 +199,7 @@ class Role(Hashable):
         http = self._state.http
 
         change_range = range(min(self.position, position), max(self.position, position) + 1)
-        guild_roles = sorted(self.guild.roles[1:], key=lambda r: r.position)
+        guild_roles = (await self.guild.fetch_roles())[1:]
         roles = [(r.id, r.position) for r in guild_roles if r.position in change_range and r.id != self.id]
         if len(change_range) >= len(roles):
             raise Exception(f"Invalid position for role position change ({self.id}) - {roles} selected")

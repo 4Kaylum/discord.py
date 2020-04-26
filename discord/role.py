@@ -251,7 +251,7 @@ class Role(Hashable):
             if encounters == 2:
                 break
 
-        # payload = [{"id": z[0].id, "position": z[1]} for z in zip(roles, change_range)]
+        # Make and send the payload
         payload = [{"id": z.id, "position": index} for index, z in enumerate(roles, start=1)]
         await http.move_role_position(self.guild.id, payload, reason=reason)
 
